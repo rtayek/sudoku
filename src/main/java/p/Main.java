@@ -43,7 +43,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             Properties properties=properties(propertiesFile);
             size=sudokus!=null&&sudokus.size()>0?sudokus.get(0).puzzle.magic.length:9;
             // maybe need one for pdf files
-            string=properties.getProperty("squareSizeForPrinting");
+            string=properties.getProperty("squareSizeForPrinting"); // maybe need one just for pdfs?
             int aSquareSize=Integer.valueOf(string);
             s=new Struct(sudokus,aSquareSize,colors);
             System.out.println("n: "+myOptions.n);
@@ -52,8 +52,8 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             return;
         }
         string=properties.getProperty("squareSizeForScreen");
-        int aSquareSize=Integer.valueOf(string);
-        s=new Struct(sudokus,aSquareSize,colors);
+        squareSizeForScreen=Integer.valueOf(string);
+        s=new Struct(sudokus,squareSizeForScreen,colors);
         colorButtons=new JButton[s.colors.length];
         setJMenuBar(createMenuBar());
         setSize(s.dimension);
@@ -237,14 +237,13 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("paper from PageFormat:"+Main.toString(paper));
             Graphics2D g2d=(Graphics2D)g;
             g2d.translate(pf.getImageableX(),pf.getImageableY());
-            int old=s.squareSize;
             s.setSquareSizeEtc(squareSizeForPrinting);
             int x0=s.dx0,y0=s.dy0;
             System.out.println("using dx0 and dy0 from struct.");
             System.out.println("x0, y0: "+x0+","+y0);
             s.paint(g,x0,y0);
             s.text(g,x0,y0);
-            s.setSquareSizeEtc(old);
+            s.setSquareSizeEtc(squareSizeForScreen);
             s.index=(s.index+s.howManyUp)%s.sudokus.size();
             return PAGE_EXISTS;
         }
@@ -390,14 +389,15 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             setSquareSizeEtc(squareSize);
         }
         void setSquareSizeEtc(int newSquareSize) {
+            int old=newSquareSize;
             if(howManyUp==3) {
                 newSquareSize=5*newSquareSize/6;
-                System.out.println("shrinking square size to: "+newSquareSize);
+                System.out.println("shrinking square size to: "+newSquareSize+" (old was: "+old+")");
             }
             this.squareSize=newSquareSize;
             dx0=2*newSquareSize;
-            dy=500; //16*newSquareSize; // needs to be aout 4 inches
-            if(howManyUp==3) dy=400;
+            dy=500*newSquareSize/defaultSquareSizeForScreen;
+            //if(howManyUp==3) dy=400;
             dx2=11*newSquareSize;
             dy0=3*newSquareSize;
             if(howManyUp==3) dy0=2*newSquareSize;
@@ -524,12 +524,14 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             g2.setStroke(old);
             paintSquares(magic,g2,x0,y0,light,heavy);
         }
-        void paintOnePUzzleAndSolution(int x0,int y0,Sudoku sudoku,Graphics2D g2) {
-            System.out.println("paint one at: "+x0+","+y0);
+        void paintOnePUzzleAndSolution(int x0,int y0,Sudoku sudoku,Graphics2D g2,int n) {
+            System.out.println("paint one puzzle at: "+x0+","+y0);
             Color oldColor=g2.getColor();
             paint(sudoku.puzzle,g2,x0,y0);
             g2.setColor(oldColor);
+            g2.drawString("Puzzle: "+n,x0,y0-squareSize/2);
             y0+=dy;
+            System.out.println("paint one solution at: "+x0+","+y0);
             paint(sudoku.solution,g2,x0,y0);
             g2.setColor(oldColor);
         }
@@ -537,24 +539,24 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("painting at: ("+x0+","+y0+")");
             Sudoku sudoku=sudokus.get(index); // maybe i don't need to pass inindex?
             Graphics2D g2=(Graphics2D)g;
-            paintOnePUzzleAndSolution(x0,y0,sudoku,g2);
+            paintOnePUzzleAndSolution(x0,y0,sudoku,g2,(index+1));
             if(howManyUp>1) {
                 sudoku=sudokus.get((index+1)%sudokus.size());
                 System.out.println("paint the second one.");
-                paintOnePUzzleAndSolution(x0+dx2,y0,sudoku,g2);
+                paintOnePUzzleAndSolution(x0+dx2,y0,sudoku,g2,((index+1)%sudokus.size()+1));
             }
             if(howManyUp>2) {
                 sudoku=sudokus.get((index+2)%sudokus.size());
                 System.out.println("paint the third one.");
-                paintOnePUzzleAndSolution(x0+2*dx2,y0,sudoku,g2);
+                paintOnePUzzleAndSolution(x0+2*dx2,y0,sudoku,g2,((index+2)%sudokus.size()+1));
             }
         }
         void text(Graphics g,int x0,int y0) {
             Rectangle r=g.getClipBounds();
             Font oldFont=g.getFont();
             g.setFont(new Font("TimesRoman",Font.PLAIN,squareSize/2));
-            g.drawString("printer: "+printerName+" is painting at: ("+x0+","+y0+")",x0+dx2/4,y0+dy-squareSize-g.getFont().getSize());
-            g.drawString("clip bounds: "+r,x0+dx2/4,y0+dy-squareSize);
+            g.drawString("printer: "+printerName+" is painting at: ("+x0+","+y0+")"+", square size: "+squareSize+", dy="+dy,x0+dx2/4,y0+dy-2*squareSize-g.getFont().getSize());
+            g.drawString("clip bounds: "+r,x0+dx2/4,y0+dy-2*squareSize);
             g.setFont(oldFont);
         }
         static void writeImages(BufferedImage bi,String name) throws IOException {
@@ -686,9 +688,9 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
     final Random random=new Random();
     int squareSizeForPrinting=defaultSquareSizeForPrinting;
     //int squareSizeForImage=defaultSquareSizeForImage;
-    //int squareSizeForScreen=defaultSquareSizeForScreen;
+    int squareSizeForScreen=defaultSquareSizeForScreen;
     final JDialog colorsDialog=new JDialog(this,Colors.toString(),true);
-    static final File propertiesFile=new File("printg.properties");
+    static final File propertiesFile=new File("sudoku.properties");
     static final Color white=new Color(255,255,255);
     static Properties defaultProperties=new Properties();
     {
