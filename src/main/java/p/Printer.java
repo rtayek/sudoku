@@ -26,10 +26,9 @@ class Printer implements Printable {
         if(page>0) { /* We have only one page, and 'page' is zero-based */
             return NO_SUCH_PAGE;
         }
-        Main.printPageFormat(pf);
+        System.out.println("page format: "+Main.toString(pf));
         Paper paper=pf.getPaper();
-        System.out.println("paper from PageFormat:");
-        Main.printPaper(paper);
+        System.out.println("paper from PageFormat:"+Main.toString(paper));
         Graphics2D g2d=(Graphics2D)g;
         g2d.translate(pf.getImageableX(),pf.getImageableY());
         paintLargeRectange(g);
@@ -40,16 +39,16 @@ class Printer implements Printable {
         HashPrintRequestAttributeSet aset=new HashPrintRequestAttributeSet();
         aset.add(new MediaPrintableArea(.25f,.25f,8.f,10.5f,MediaPrintableArea.INCH));
         aset.add(OrientationRequested.PORTRAIT);
-        PrinterJob job = PrinterJob.getPrinterJob();
+        PrinterJob job=PrinterJob.getPrinterJob();
         job.setPrintable(new Printer(painter));
         job.setJobName("sudoku");
         //job.pageDialog(aset);
         // not using aset yest!
-        boolean ok = job.printDialog(aset);
-        if (ok) {
+        boolean ok=job.printDialog(aset);
+        if(ok) {
             try {
-                 job.print();
-            } catch (PrinterException e) {
+                job.print();
+            } catch(PrinterException e) {
                 System.err.println("caight: "+e);
             }
         }
@@ -58,5 +57,4 @@ class Printer implements Printable {
         System.out.println("calling main!");
         MainForPrinter.main(args);
     }
-
 }

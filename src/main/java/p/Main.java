@@ -25,7 +25,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
     // use circle, with number
     public Main(Cli myOptions,java.util.List<Sudoku> sudokus) {
         Paper paper=new Paper();
-        printPaper(paper);
+        toString(paper);
         properties=properties(propertiesFile);
         int size=sudokus!=null&&sudokus.size()>0?sudokus.get(0).puzzle.magic.length:9;
         Color[] colors=getColors(size,properties);
@@ -34,8 +34,8 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         if(myOptions.printImages) {
             Properties properties=properties(propertiesFile);
             string=properties.getProperty("squareSizeForImage");
-            int squareSize=Integer.valueOf(string);
-            s=new Struct(sudokus,squareSize,colors);
+            int aSquareSize=Integer.valueOf(string);
+            s=new Struct(sudokus,aSquareSize,colors);
             s.writeImages(myOptions.start,myOptions.n);
             return;
         } else if(myOptions.printPdfs) {
@@ -44,17 +44,16 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             size=sudokus!=null&&sudokus.size()>0?sudokus.get(0).puzzle.magic.length:9;
             // maybe need one for pdf files
             string=properties.getProperty("squareSizeForPrinting");
-            int squareSize=Integer.valueOf(string);
-            s=new Struct(sudokus,squareSize,colors);
+            int aSquareSize=Integer.valueOf(string);
+            s=new Struct(sudokus,aSquareSize,colors);
             System.out.println("n: "+myOptions.n);
             s.pages=myOptions.n;
             print();
             return;
         }
         string=properties.getProperty("squareSizeForScreen");
-        int squareSize=Integer.valueOf(string);
-        s=new Struct(sudokus,squareSize,colors);
-        string=properties.getProperty("squareSizeForPrinting");
+        int aSquareSize=Integer.valueOf(string);
+        s=new Struct(sudokus,aSquareSize,colors);
         colorButtons=new JButton[s.colors.length];
         setJMenuBar(createMenuBar());
         setSize(s.dimension);
@@ -233,33 +232,34 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         @Override public int print(Graphics g,PageFormat pf,int page) throws PrinterException {
             System.out.println("in print(), page: "+page+", pages: "+s.pages);
             if(page>s.pages-1) return NO_SUCH_PAGE;
-            printPageFormat(pf);
+            System.out.println("page format: "+Main.toString(pf));
             Paper paper=pf.getPaper();
-            System.out.println("paper from PageFormat:");
-            printPaper(paper);
+            System.out.println("paper from PageFormat:"+Main.toString(paper));
             Graphics2D g2d=(Graphics2D)g;
             g2d.translate(pf.getImageableX(),pf.getImageableY());
-            System.out.println("using (x0,y0) from struct.");
-            int x0=s.dx0,y0=s.dy0;
-            System.out.println("x0, y0: "+x0+","+y0);
             int old=s.squareSize;
             s.setSquareSizeEtc(squareSizeForPrinting);
+            int x0=s.dx0,y0=s.dy0;
+            System.out.println("using dx0 and dy0 from struct.");
+            System.out.println("x0, y0: "+x0+","+y0);
             s.paint(g,x0,y0);
+            s.text(g,x0,y0);
             s.setSquareSizeEtc(old);
-            s.index=(s.index+howManyUp)%s.sudokus.size();
+            s.index=(s.index+s.howManyUp)%s.sudokus.size();
             return PAGE_EXISTS;
         }
     }
-    static void printPaper(Paper paper) {
+    static String toString(Paper paper) {
         double ix=paper.getImageableX();
         double iy=paper.getImageableY();
         double iw=paper.getImageableWidth();
         double ih=paper.getImageableHeight();
         double w=paper.getWidth();
         double h=paper.getHeight();
-        System.out.println("paper: "+" ix "+ix+" iy "+iy+" iw "+iw+" ih "+ih+"w "+w+" h "+h);
+        String string="ix "+ix+", iy "+iy+", iw "+iw+", ih "+ih+", w "+w+", h "+h;
+        return string;
     }
-    static void printPageFormat(PageFormat pageFormat) {
+    static String toString(PageFormat pageFormat) {
         double ix=pageFormat.getImageableX();
         double iy=pageFormat.getImageableY();
         double iw=pageFormat.getImageableWidth();
@@ -267,18 +267,23 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         double w=pageFormat.getWidth();
         double h=pageFormat.getHeight();
         int orientation=pageFormat.getOrientation();
-        System.out.println("pageFormat: "+" ix "+ix+" iy "+iy+" iw "+iw+" ih "+ih+"w "+w+" h "+h+" orientation: "+orientation);
+        String string="ix "+ix+", iy "+iy+", iw "+iw+", ih "+ih+", w "+w+", h "+h+", orientation: "+orientation;
+        return string;
     }
     void print() {
-        System.out.println("in static print(Consumer<Graphics>)");
+        System.out.println("in static Printer::print()");
         HashPrintRequestAttributeSet set=new HashPrintRequestAttributeSet();
-        set.add(new MediaPrintableArea(.3f,.3f,8.f,10.5f,MediaPrintableArea.INCH));
+        set.add(new MediaPrintableArea(.25f,.25f,8.f,10.5f,MediaPrintableArea.INCH));
+        if(s.howManyUp==3) set.add(OrientationRequested.LANDSCAPE);
         set.add(OrientationRequested.PORTRAIT);
         PrinterJob job=PrinterJob.getPrinterJob();
         job.setPrintable(new Printer());
         System.out.println(set);
         boolean ok=job.printDialog(set);
         if(ok) try {
+            String name=job.getPrintService().getName();
+            System.out.println("printing on: "+name);
+            s.printerName=name;
             job.print(set);
         } catch(PrinterException e) {
             System.err.println("caight: "+e);
@@ -291,7 +296,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             switch(Buttons.valueOf(button.getName())) {
                 case Left:
                     if(s.sudokus!=null&&s.sudokus.size()>0) {
-                        s.index=(s.index-howManyUp+s.sudokus.size())%s.sudokus.size();
+                        s.index=(s.index-s.howManyUp+s.sudokus.size())%s.sudokus.size();
                         setSizeAndText();
                         invalidate();
                         repaint();
@@ -299,7 +304,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                     break;
                 case Right:
                     if(s.sudokus!=null&&s.sudokus.size()>0) {
-                        s.index=(s.index+howManyUp)%s.sudokus.size();
+                        s.index=(s.index+s.howManyUp)%s.sudokus.size();
                         setSizeAndText();
                         invalidate();
                         repaint();
@@ -362,7 +367,9 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("adding to insets.");
             int x0=insets.left+s.dx0,y0=insets.top+s.dy0;
             System.out.println("x0, y0: "+x0+","+y0);
+            s.printerName="screen";
             s.paint(g,x0,y0);
+            s.text(g,x0,y0);
         } else g.drawString("no puzzle!",100,100);
     }
     static class Struct {
@@ -372,14 +379,28 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             if(colors.length<size) System.err.println(colors.length+" is not enough colors!");
             this.colors=colors;
             n=mySqrt(size);
+            if(howManyUp==3) {
+                width=1080;
+                height=(int)Math.round(width*8.5/11);
+            } else {
+                height=1080;
+                width=(int)Math.round(height*8.5/11);
+            }
+            dimension=new Dimension(width,height);
             setSquareSizeEtc(squareSize);
         }
-        private void setSquareSizeEtc(int squareSize) {
-            this.squareSize=squareSize;
-            dx0=squareSize;
-            dy=13*squareSize;
-            dx2=11*squareSize;
-            dy0=20+squareSize;
+        void setSquareSizeEtc(int newSquareSize) {
+            if(howManyUp==3) {
+                newSquareSize=5*newSquareSize/6;
+                System.out.println("shrinking square size to: "+newSquareSize);
+            }
+            this.squareSize=newSquareSize;
+            dx0=2*newSquareSize;
+            dy=500; //16*newSquareSize; // needs to be aout 4 inches
+            if(howManyUp==3) dy=400;
+            dx2=11*newSquareSize;
+            dy0=3*newSquareSize;
+            if(howManyUp==3) dy0=2*newSquareSize;
         }
         static int d(final int light,final int heavy,int i,int n) {
             int delta=0;
@@ -503,7 +524,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             g2.setStroke(old);
             paintSquares(magic,g2,x0,y0,light,heavy);
         }
-        void paintOne(int x0,int y0,Sudoku sudoku,Graphics2D g2) {
+        void paintOnePUzzleAndSolution(int x0,int y0,Sudoku sudoku,Graphics2D g2) {
             System.out.println("paint one at: "+x0+","+y0);
             Color oldColor=g2.getColor();
             paint(sudoku.puzzle,g2,x0,y0);
@@ -516,12 +537,25 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("painting at: ("+x0+","+y0+")");
             Sudoku sudoku=sudokus.get(index); // maybe i don't need to pass inindex?
             Graphics2D g2=(Graphics2D)g;
-            paintOne(x0,y0,sudoku,g2);
-            if(twoUp) {
+            paintOnePUzzleAndSolution(x0,y0,sudoku,g2);
+            if(howManyUp>1) {
                 sudoku=sudokus.get((index+1)%sudokus.size());
                 System.out.println("paint the second one.");
-                paintOne(x0+dx2,y0,sudoku,g2);
+                paintOnePUzzleAndSolution(x0+dx2,y0,sudoku,g2);
             }
+            if(howManyUp>2) {
+                sudoku=sudokus.get((index+2)%sudokus.size());
+                System.out.println("paint the third one.");
+                paintOnePUzzleAndSolution(x0+2*dx2,y0,sudoku,g2);
+            }
+        }
+        void text(Graphics g,int x0,int y0) {
+            Rectangle r=g.getClipBounds();
+            Font oldFont=g.getFont();
+            g.setFont(new Font("TimesRoman",Font.PLAIN,squareSize/2));
+            g.drawString("printer: "+printerName+" is painting at: ("+x0+","+y0+")",x0+dx2/4,y0+dy-squareSize-g.getFont().getSize());
+            g.drawString("clip bounds: "+r,x0+dx2/4,y0+dy-squareSize);
+            g.setFont(oldFont);
         }
         static void writeImages(BufferedImage bi,String name) throws IOException {
             if(!ImageIO.write(bi,"PNG",new File(name+".png"))) System.out.println(name+" no writer for png!");
@@ -535,7 +569,9 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                 Graphics2D g2=bi.createGraphics();
                 g2.setColor(Color.black);
                 int x0=dx0,y0=dy0;
+                printerName="image";
                 paint(g2,x0,y0);
+                text(g2,x0,y0);
                 writeImages(bi,""+index);
             } catch(IOException ie) {
                 ie.printStackTrace();
@@ -547,10 +583,12 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                 if(twoUp) ++i;
             }
         }
+        // control shift p goes to matching brace
+        String printerName;
         final Color[] colors;
-        int height=1080;
-        int width=(int)Math.round(height*8.5/11);
-        Dimension dimension=new Dimension(width,height);
+        final int height;
+        final int width;
+        final Dimension dimension;
         boolean dark=true;
         boolean circle=true;
         boolean paintGuidlines=false;
@@ -560,6 +598,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         final int light=2,heavy=6;
         int dy;
         boolean twoUp=true;
+        int howManyUp=3;
         int dx0,dy0,dx2;
         int pages=1;
         java.util.List<Sudoku> sudokus;
@@ -608,6 +647,13 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         } else writeProperties(properties,file);
         return properties;
     }
+    public static void printers() {
+        PrintService[] printServices=PrinterJob.lookupPrintServices();
+        for(PrintService printService:printServices) {
+            String name=printService.getName();
+            System.out.println("Name = "+name);
+        }
+    }
     public static void main(String[] args) {
         Cli myOptions=new Cli();
         myOptions.options(args);
@@ -642,7 +688,6 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
     //int squareSizeForImage=defaultSquareSizeForImage;
     //int squareSizeForScreen=defaultSquareSizeForScreen;
     final JDialog colorsDialog=new JDialog(this,Colors.toString(),true);
-    static final int howManyUp=2;
     static final File propertiesFile=new File("printg.properties");
     static final Color white=new Color(255,255,255);
     static Properties defaultProperties=new Properties();
@@ -658,7 +703,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             new Color(75,0,97),new Color(162,109,255)};
     // https://www.websudoku.com
     static final int defaultSquareSizeForPrinting=24;
-    static final int defaultSquareSizeForImage=44;
+    static final int defaultSquareSizeForImage=42;
     static final int defaultSquareSizeForScreen=36;
     static final FontRenderContext frc=new FontRenderContext(null,true,true);
     static String[] defaultSudokus=new String[] {
