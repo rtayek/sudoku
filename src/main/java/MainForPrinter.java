@@ -1,10 +1,10 @@
-package p;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
 public class MainForPrinter extends JFrame implements KeyListener {
-    MainForPrinter() {
+    MainForPrinter() { // just draws a bug rectangle
         insets=getInsets();
         System.out.println("insets: "+insets);
         setSize(dimension); // fiddle with this using insets?

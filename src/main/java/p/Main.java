@@ -248,7 +248,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             return PAGE_EXISTS;
         }
     }
-    static String toString(Paper paper) {
+    public static String toString(Paper paper) {
         double ix=paper.getImageableX();
         double iy=paper.getImageableY();
         double iw=paper.getImageableWidth();
@@ -258,7 +258,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         String string="ix "+ix+", iy "+iy+", iw "+iw+", ih "+ih+", w "+w+", h "+h;
         return string;
     }
-    static String toString(PageFormat pageFormat) {
+    public static String toString(PageFormat pageFormat) {
         double ix=pageFormat.getImageableX();
         double iy=pageFormat.getImageableY();
         double iw=pageFormat.getImageableWidth();

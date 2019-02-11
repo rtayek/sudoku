@@ -1,4 +1,4 @@
-package p;
+
 import java.awt.*;
 import java.awt.print.*;
 import java.util.function.Consumer;
@@ -26,9 +26,9 @@ class Printer implements Printable {
         if(page>0) { /* We have only one page, and 'page' is zero-based */
             return NO_SUCH_PAGE;
         }
-        System.out.println("page format: "+Main.toString(pf));
+        System.out.println("page format: "+p.Main.toString(pf));
         Paper paper=pf.getPaper();
-        System.out.println("paper from PageFormat:"+Main.toString(paper));
+        System.out.println("paper from PageFormat:"+p.Main.toString(paper));
         Graphics2D g2d=(Graphics2D)g;
         g2d.translate(pf.getImageableX(),pf.getImageableY());
         paintLargeRectange(g);
