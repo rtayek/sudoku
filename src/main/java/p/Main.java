@@ -14,9 +14,10 @@ import javax.print.*;
 import javax.print.attribute.*;
 import javax.print.attribute.standard.*;
 import javax.swing.*;
+import p.Sudoku;
 import static p.Magic.*;
-import static p.Sudoku.*;
 import static p.Main.Buttons.*;
+import static p.Sudoku.*;
 public class Main extends JFrame implements /*Printable,*/ActionListener {
     enum Buttons {
         Print,Postscript,Image,Left,Right,Number,Style,Colors;
@@ -36,7 +37,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             string=properties.getProperty("squareSizeForImage");
             int aSquareSize=Integer.valueOf(string);
             s=new Struct(sudokus,aSquareSize,colors);
-            s.writeImages(myOptions.start,myOptions.n);
+            s.writeImages(myOptions.startingPuzzleIndex,myOptions.numberOfPuzzles);
             return;
         } else if(myOptions.printPdfs) {
             System.out.println("pdfs");
@@ -46,9 +47,8 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             string=properties.getProperty("squareSizeForPrinting"); // maybe need one just for pdfs?
             int aSquareSize=Integer.valueOf(string);
             s=new Struct(sudokus,aSquareSize,colors);
-            System.out.println("n: "+myOptions.n);
-            s.pages=myOptions.n;
-            print();
+            System.out.println("number of puzzles: "+myOptions.numberOfPuzzles);
+            print(myOptions.startingPuzzleIndex,myOptions.numberOfPuzzles);
             return;
         }
         string=properties.getProperty("squareSizeForScreen");
@@ -101,7 +101,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         Rectangle rectangle=frame.getBounds();
         rectangle.x+=800;
         frame.setBounds(rectangle);
-        System.out.println("grid frame: "+frame.getBounds());
+        //System.out.println("grid frame: "+frame.getBounds());
     }
     static Color fromString(String string) {
         try {
@@ -140,9 +140,9 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             colors=new Color[size];
             for(String key:colorKeys) {
                 char c=key.charAt(key.length()-1);
-                int index=Integer.valueOf(c-'0')-1;
+                int colorIndex=Integer.valueOf(c-'0')-1;
                 String value=properties.getProperty(key);
-                colors[index]=fromString(value);
+                colors[colorIndex]=fromString(value);
             }
         }
         return colors;
@@ -227,26 +227,45 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         }
         System.out.println("entry print2DtoStream");
     }
+    static int pages(int puzzles,int howManyUp) {
+        return (int)Math.ceil(puzzles/(double)howManyUp);
+    }
     class Printer implements Printable {
+        Printer(int start,int n) {
+            this.start=start;
+            this.n=n;
+            pages=pages(n,s.howManyUp);
+            index=start;
+        }
         //https://stackoverflow.com/questions/25283110/how-to-set-printer-margin-in-java
         @Override public int print(Graphics g,PageFormat pf,int page) throws PrinterException {
-            System.out.println("in print(), page: "+page+", pages: "+s.pages);
-            if(page>s.pages-1) return NO_SUCH_PAGE;
+            // may he called more than once for each page!
+            System.out.println("------------------------------------------");
+            System.out.println("in print(), page: "+page+" of "+pages+", pages: ");
+            if(page>pages-1) return NO_SUCH_PAGE;
             System.out.println("page format: "+Main.toString(pf));
             Paper paper=pf.getPaper();
             System.out.println("paper from PageFormat:"+Main.toString(paper));
             Graphics2D g2d=(Graphics2D)g;
             g2d.translate(pf.getImageableX(),pf.getImageableY());
             s.setSquareSizeEtc(squareSizeForPrinting);
+            System.out.println("paint screen");
             int x0=s.dx0,y0=s.dy0;
+            System.out.println("s.index: "+s.index);
             System.out.println("using dx0 and dy0 from struct.");
-            System.out.println("x0, y0: "+x0+","+y0);
-            s.paint(g,x0,y0);
-            s.text(g,x0,y0);
-            s.setSquareSizeEtc(squareSizeForScreen);
-            s.index=(s.index+s.howManyUp)%s.sudokus.size();
+            s.dx2+=s.squareSize; // not sure why we need this!
+            s.paint(g,x0,y0,index);
+            s.dx2-=s.squareSize;
+            s.setSquareSizeEtc(s.squareSize0);
+            s.printerName="screen";
+            //index=(s.index+s.howManyUp)%s.sudokus.size();
+            index=start+page*s.howManyUp;
+            System.out.println("------------------------------------------");
             return PAGE_EXISTS;
         }
+        final int start,n; // puzzle indices, not pages!
+        final int pages;
+        int index;
     }
     public static String toString(Paper paper) {
         double ix=paper.getImageableX();
@@ -269,14 +288,13 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         String string="ix "+ix+", iy "+iy+", iw "+iw+", ih "+ih+", w "+w+", h "+h+", orientation: "+orientation;
         return string;
     }
-    void print() {
+    void print(int start,int n) {
         System.out.println("in static Printer::print()");
         HashPrintRequestAttributeSet set=new HashPrintRequestAttributeSet();
         set.add(new MediaPrintableArea(.25f,.25f,8.f,10.5f,MediaPrintableArea.INCH));
-        if(s.howManyUp==3) set.add(OrientationRequested.LANDSCAPE);
-        set.add(OrientationRequested.PORTRAIT);
+        set.add(s.howManyUp==3?OrientationRequested.LANDSCAPE:OrientationRequested.PORTRAIT);
         PrinterJob job=PrinterJob.getPrinterJob();
-        job.setPrintable(new Printer());
+        job.setPrintable(new Printer(start,n));
         System.out.println(set);
         boolean ok=job.printDialog(set);
         if(ok) try {
@@ -310,7 +328,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                     }
                     break;
                 case Print:
-                    print();
+                    print(s.index,s.howManyUp);
                     break;
                 case Postscript:
                     print2DtoStream(s.index+".ps");
@@ -359,16 +377,14 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
     }
     @Override public void paint(Graphics g) {
         super.paint(g);
-        System.out.println("current square size is: "+s.squareSize);
+        //System.out.println("current square size is: "+s.squareSize);
+        System.out.println("paint screen");
         Insets insets=getInsets(); // maybe use these. they may be better than guessing?
-        System.out.println("insets in frame: "+insets);
         if(s.sudokus!=null&&s.sudokus.size()>0) {
-            System.out.println("adding to insets.");
             int x0=insets.left+s.dx0,y0=insets.top+s.dy0;
-            System.out.println("x0, y0: "+x0+","+y0);
-            s.printerName="screen";
-            s.paint(g,x0,y0);
-            s.text(g,x0,y0);
+            System.out.println("------------------------------------------");
+            s.paint(g,x0,y0,s.index);
+            System.out.println("------------------------------------------");
         } else g.drawString("no puzzle!",100,100);
     }
     static class Struct {
@@ -386,18 +402,18 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                 width=(int)Math.round(height*8.5/11);
             }
             dimension=new Dimension(width,height);
+            squareSize0=squareSize;
             setSquareSizeEtc(squareSize);
         }
         void setSquareSizeEtc(int newSquareSize) {
-            int old=newSquareSize;
             if(howManyUp==3) {
+                System.out.println("new square size: "+newSquareSize);
                 newSquareSize=5*newSquareSize/6;
-                System.out.println("shrinking square size to: "+newSquareSize+" (old was: "+old+")");
+                System.out.println("shrinking square size to: "+newSquareSize+" for 3 up (old was: "+squareSize+")");
             }
             this.squareSize=newSquareSize;
             dx0=2*newSquareSize;
             dy=500*newSquareSize/defaultSquareSizeForScreen;
-            //if(howManyUp==3) dy=400;
             dx2=11*newSquareSize;
             dy0=3*newSquareSize;
             if(howManyUp==3) dy0=2*newSquareSize;
@@ -524,40 +540,37 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             g2.setStroke(old);
             paintSquares(magic,g2,x0,y0,light,heavy);
         }
-        void paintOnePUzzleAndSolution(int x0,int y0,Sudoku sudoku,Graphics2D g2,int n) {
+        void paintOnePUzzleAndSolution(int x0,int y0,Graphics2D g2,int startingIndex) {
             System.out.println("paint one puzzle at: "+x0+","+y0);
             Color oldColor=g2.getColor();
+            Sudoku sudoku=sudokus.get(startingIndex);
             paint(sudoku.puzzle,g2,x0,y0);
             g2.setColor(oldColor);
-            g2.drawString("Puzzle: "+n,x0,y0-squareSize/2);
+            g2.drawString("Puzzle: "+(startingIndex+1),x0,y0-squareSize/2);
             y0+=dy;
-            System.out.println("paint one solution at: "+x0+","+y0);
+            //System.out.println("paint one solution at: "+x0+","+y0);
             paint(sudoku.solution,g2,x0,y0);
             g2.setColor(oldColor);
         }
-        void paint(Graphics g,int x0,int y0) {
-            System.out.println("painting at: ("+x0+","+y0+")");
-            Sudoku sudoku=sudokus.get(index); // maybe i don't need to pass inindex?
+        void paint_(Graphics g,int x0,int y0,int index) {
             Graphics2D g2=(Graphics2D)g;
-            paintOnePUzzleAndSolution(x0,y0,sudoku,g2,(index+1));
-            if(howManyUp>1) {
-                sudoku=sudokus.get((index+1)%sudokus.size());
-                System.out.println("paint the second one.");
-                paintOnePUzzleAndSolution(x0+dx2,y0,sudoku,g2,((index+1)%sudokus.size()+1));
-            }
-            if(howManyUp>2) {
-                sudoku=sudokus.get((index+2)%sudokus.size());
-                System.out.println("paint the third one.");
-                paintOnePUzzleAndSolution(x0+2*dx2,y0,sudoku,g2,((index+2)%sudokus.size()+1));
-            }
+            System.out.println(this);
+            paintOnePUzzleAndSolution(x0,y0,g2,index);
+            if(howManyUp>1) paintOnePUzzleAndSolution(x0+dx2,y0,g2,(index+1)%sudokus.size());
+            if(howManyUp>2) paintOnePUzzleAndSolution(x0+2*dx2,y0,g2,(index+2)%sudokus.size());
         }
         void text(Graphics g,int x0,int y0) {
             Rectangle r=g.getClipBounds();
             Font oldFont=g.getFont();
             g.setFont(new Font("TimesRoman",Font.PLAIN,squareSize/2));
-            g.drawString("printer: "+printerName+" is painting at: ("+x0+","+y0+")"+", square size: "+squareSize+", dy="+dy,x0+dx2/4,y0+dy-2*squareSize-g.getFont().getSize());
-            g.drawString("clip bounds: "+r,x0+dx2/4,y0+dy-2*squareSize);
+            g.drawString("printer: "+printerName+" is painting at: ("+x0+","+y0+")"+", clip bounds: "+r,x0,y0+dy-2*squareSize-g.getFont().getSize());
+            g.drawString(""+this,x0,y0+dy-2*squareSize);
             g.setFont(oldFont);
+        }
+        void paint(Graphics g,int x0,int y0,int index) {
+            System.out.println("x0, y0: "+x0+","+y0);
+            paint_(g,x0,y0,index);
+            text(g,x0,y0);
         }
         static void writeImages(BufferedImage bi,String name) throws IOException {
             if(!ImageIO.write(bi,"PNG",new File(name+".png"))) System.out.println(name+" no writer for png!");
@@ -570,20 +583,36 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
                 BufferedImage bi=new BufferedImage(dimension.width,dimension.height,BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2=bi.createGraphics();
                 g2.setColor(Color.black);
-                int x0=dx0,y0=dy0;
                 printerName="image";
-                paint(g2,x0,y0);
-                text(g2,x0,y0);
+                System.out.println("------------------------------------------");
+                paint(g2,dx0,dy0,index);
+                System.out.println("------------------------------------------");
                 writeImages(bi,""+index);
+                printerName="screen";
             } catch(IOException ie) {
                 ie.printStackTrace();
             }
         }
-        void writeImages(int start,int n) {
-            for(int i=start;i<start+n;i++) {
+        void writeImages(int startingPuzzleIndex,int numberOfPuzzles) {
+            // uses this index
+            for(int i=startingPuzzleIndex;i<startingPuzzleIndex+numberOfPuzzles;i+=howManyUp) {
                 writeImage(i);
-                if(twoUp) ++i;
             }
+        }
+        @Override public String toString() {
+            return "Struct ["+"printerName="+printerName
+            //+", colors="+Arrays.toString(colors)
+                    +", height="+height+", width="+width
+                    //+", dimension="+dimension
+                    //+", dark="+dark
+                    //+", circle="+circle
+                    //+", paintGuidlines="+paintGuidlines
+                    +", n="+n+", size="+size+", index="+index+", squareSize="+squareSize
+                    //+", light="+light
+                    //+", heavy="+heavy
+                    +", dy="+dy+", howManyUp="+howManyUp+", dx0="+dx0+", dy0="+dy0+", dx2="+dx2+", pages="+pages
+                    //+", sudokus="+sudokus
+                    +"]";
         }
         // control shift p goes to matching brace
         String printerName;
@@ -596,10 +625,10 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
         boolean paintGuidlines=false;
         final int n,size;
         Integer index=0;
+        final int squareSize0;
         int squareSize;
         final int light=2,heavy=6;
         int dy;
-        boolean twoUp=true;
         int howManyUp=3;
         int dx0,dy0,dx2;
         int pages=1;
@@ -656,6 +685,9 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("Name = "+name);
         }
     }
+    //found a bunch here. found a program to scrape the site.
+    //http://www.menneske.no/sudoku/
+    //https://github.com/apauliuc/sudoku-scraper
     public static void main(String[] args) {
         Cli myOptions=new Cli();
         myOptions.options(args);
@@ -668,6 +700,7 @@ public class Main extends JFrame implements /*Printable,*/ActionListener {
             System.out.println("caught: "+e);
         }
         if(sudokus==null||sudokus.size()==0) {
+            System.err.println("no sudokus found, using builins");
             sudokus=new ArrayList<>();
             for(int i=0;i<defaultSudokus.length;i++) {
                 Sudoku sudoku=Sudoku.fromString(defaultSudokus[i]);

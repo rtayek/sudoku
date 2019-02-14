@@ -25,9 +25,9 @@ class Cli {
         options.addOption("f","file",true,"csv file.");
         options.addOption("i","images",false,"print images and quit.");
         options.addOption("p","pdf",false,"make pdf file and quit.");
-        Option start=OptionBuilder.withArgName("n").hasArg().withLongOpt("start").withDescription("start at <n>").create("s");
+        Option start=OptionBuilder.withArgName("s").hasArg().withLongOpt("start").withDescription("start at puzzle <n>").create("s");
         options.addOption(start);
-        Option number=OptionBuilder.withArgName("n").hasArg().withLongOpt("number").withDescription("set number to <n>").create("n");
+        Option number=OptionBuilder.withArgName("n").hasArg().withLongOpt("number").withDescription("set number of puzzles to <n>").create("n");
         options.addOption(number);
         CommandLineParser parser=new DefaultParser();
         try {
@@ -56,7 +56,7 @@ class Cli {
             if(line.hasOption('s')) {
                 String string=line.getOptionValue('s').trim();
                 try {
-                    this.start=Integer.valueOf(string);
+                    this.startingPuzzleIndex=Integer.valueOf(string);
                 } catch(NumberFormatException e) {
                     System.err.println("caught: "+e);
                 }
@@ -65,7 +65,7 @@ class Cli {
             if(line.hasOption('n')) {
                 String string=line.getOptionValue('n').trim();
                 try {
-                    n=Integer.valueOf(string);
+                    numberOfPuzzles=Integer.valueOf(string);
                 } catch(NumberFormatException e) {
                     System.err.println("caught: "+e);
                 }
@@ -96,7 +96,7 @@ class Cli {
         formatter.printHelp(programName,options);
     }
     @Override public String toString() {
-        return "MyOptions [light="+light+", printImages="+printImages+", defaultFilename="+defaultFilename+", filename="+filename+", start="+start+", n="+n+"]";
+        return "MyOptions [light="+light+", printImages="+printImages+", defaultFilename="+defaultFilename+", filename="+filename+", start="+startingPuzzleIndex+", n="+numberOfPuzzles+"]";
     }
     static boolean isGood(String name) {
         File file=new File(name);
@@ -118,5 +118,5 @@ class Cli {
     {
         if(isGood(defaultFilename)) filename=defaultFilename;
     }
-    int start=0,n=10;
+    int startingPuzzleIndex=0,numberOfPuzzles=10;
 }

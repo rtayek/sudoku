@@ -1,9 +1,10 @@
 package p;
 import static org.junit.Assert.*;
 import org.junit.*;
+import p.Sudoku;
 import static p.Magic.*;
-import static p.Sudoku.*;
 import static p.Main.*;
+import static p.Sudoku.*;
 import java.io.*;
 public class MagicTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
