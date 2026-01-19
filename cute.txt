@@ -1,0 +1,51 @@
+Name = Quicken PDF Printer
+Name = Microsoft XPS Document Writer
+Name = Fax
+Name = CutePDF Writer
+Name = Brother MFC-5860CN
+Name = Brother HL-5140 series
+p has option: true
+s has option: 0
+n has option: 3
+org.apache.commons.cli.CommandLine@1d16f93d
+10000 sudokus
+defaultProperties: {squareSizeForImage=42, color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], squareSizeForPrinting=24, color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForScreen=36}
+reading properties
+read: {color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForImage=42, squareSizeForPrinting=24, squareSizeForScreen=36}
+pdfs
+defaultProperties: {squareSizeForImage=42, color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], squareSizeForPrinting=24, color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForScreen=36}
+reading properties
+read: {color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForImage=42, squareSizeForPrinting=24, squareSizeForScreen=36}
+shrinking square size to: 20 for 3 up (old was: 24)
+number of puzzles: 3
+in static Printer::print()
+javax.print.attribute.HashPrintRequestAttributeSet@148464c
+printing on: CutePDF Writer
+in print(), page: 0, pages: 1
+page format: ix 18.0, iy 18.0, iw 756.0, ih 576.0, w 792.0, h 612.0, orientation: 0
+paper from PageFormat:ix 18.0, iy 18.0, iw 576.0, ih 756.0, w 612.0, h 792.0
+shrinking square size to: 20 for 3 up (old was: 24)
+paint screen
+s.index: 0
+using dx0 and dy0 from struct.
+x0, y0: 40,40
+Struct [printerName=CutePDF Writer, height=835, width=1080, dimension=java.awt.Dimension[width=1080,height=835], n=3, size=9, index=0, squareSize=20, dy=277, howManyUp=3, dx0=40, dy0=40, dx2=220, pages=1]
+paint one puzzle at: 40,40
+paint one puzzle at: 260,40
+paint one puzzle at: 480,40
+shrinking square size to: 30 for 3 up (old was: 36)
+in print(), page: 0, pages: 1
+page format: ix 18.0, iy 18.0, iw 756.0, ih 576.0, w 792.0, h 612.0, orientation: 0
+paper from PageFormat:ix 18.0, iy 18.0, iw 576.0, ih 756.0, w 612.0, h 792.0
+shrinking square size to: 20 for 3 up (old was: 24)
+paint screen
+s.index: 3
+using dx0 and dy0 from struct.
+x0, y0: 40,40
+Struct [printerName=screen, height=835, width=1080, dimension=java.awt.Dimension[width=1080,height=835], n=3, size=9, index=3, squareSize=20, dy=277, howManyUp=3, dx0=40, dy0=40, dx2=220, pages=1]
+paint one puzzle at: 40,40
+paint one puzzle at: 260,40
+paint one puzzle at: 480,40
+shrinking square size to: 30 for 3 up (old was: 36)
+in print(), page: 1, pages: 1
+[0x7FFD8944B390] ANOMALY: meaningless REX prefix used

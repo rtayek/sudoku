@@ -1,0 +1,7 @@
+.git
+.gradle
+build
+bin
+out
+target
+node_modules

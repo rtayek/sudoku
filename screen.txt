@@ -1,0 +1,24 @@
+org.apache.commons.cli.CommandLine@464bee09
+10000 sudokus
+defaultProperties: {squareSizeForImage=42, color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], squareSizeForPrinting=24, color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForScreen=36}
+reading properties
+read: {color9=java.awt.Color[r=162,g=109,b=255], color7=java.awt.Color[r=102,g=255,b=245], color8=java.awt.Color[r=75,g=0,b=97], color5=java.awt.Color[r=196,g=0,b=3], color6=java.awt.Color[r=255,g=105,b=0], color3=java.awt.Color[r=50,g=205,b=50], color4=java.awt.Color[r=245,g=248,b=53], color1=java.awt.Color[r=0,g=0,b=176], color2=java.awt.Color[r=0,g=74,b=2], squareSizeForImage=42, squareSizeForPrinting=24, squareSizeForScreen=36}
+shrinking square size to: 30 for 3 up (old was: 36)
+paint screen
+x0, y0: 68,91
+Struct [printerName=null, height=835, width=1080, dimension=java.awt.Dimension[width=1080,height=835], n=3, size=9, index=0, squareSize=30, dy=416, howManyUp=3, dx0=60, dy0=60, dx2=330, pages=1]
+paint one puzzle at: 68,91
+paint one puzzle at: 398,91
+paint one puzzle at: 728,91
+paint screen
+x0, y0: 68,91
+Struct [printerName=null, height=835, width=1080, dimension=java.awt.Dimension[width=1080,height=835], n=3, size=9, index=0, squareSize=30, dy=416, howManyUp=3, dx0=60, dy0=60, dx2=330, pages=1]
+paint one puzzle at: 68,91
+paint one puzzle at: 398,91
+paint one puzzle at: 728,91
+paint screen
+x0, y0: 68,91
+Struct [printerName=null, height=835, width=1080, dimension=java.awt.Dimension[width=1080,height=835], n=3, size=9, index=0, squareSize=30, dy=416, howManyUp=3, dx0=60, dy0=60, dx2=330, pages=1]
+paint one puzzle at: 68,91
+paint one puzzle at: 398,91
+paint one puzzle at: 728,91
