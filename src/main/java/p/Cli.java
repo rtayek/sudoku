@@ -25,6 +25,7 @@ class Cli {
         options.addOption("f","file",true,"csv file.");
         options.addOption("i","images",false,"print images and quit.");
         options.addOption("p","pdf",false,"make pdf file and quit.");
+        options.addOption("t","title",true,"difficulty/title used in headers.");
         Option start=OptionBuilder.withArgName("s").hasArg().withLongOpt("start").withDescription("start at puzzle <n>").create("s");
         options.addOption(start);
         Option number=OptionBuilder.withArgName("n").hasArg().withLongOpt("number").withDescription("set number of puzzles to <n>").create("n");
@@ -52,6 +53,11 @@ class Cli {
             if(line.hasOption('p')) {
                 printPdfs=true;
                 System.out.println("p has option: true");
+            }
+            if(line.hasOption('t')) {
+                String string=line.getOptionValue('t');
+                title=string;
+                System.out.println("t has option: "+string);
             }
             if(line.hasOption('s')) {
                 String string=line.getOptionValue('s').trim();
@@ -96,7 +102,7 @@ class Cli {
         formatter.printHelp(programName,options);
     }
     @Override public String toString() {
-        return "MyOptions [light="+light+", printImages="+printImages+", defaultFilename="+defaultFilename+", filename="+filename+", start="+startingPuzzleIndex+", n="+numberOfPuzzles+"]";
+        return "MyOptions [light="+light+", printImages="+printImages+", defaultFilename="+defaultFilename+", filename="+filename+", title="+title+", start="+startingPuzzleIndex+", n="+numberOfPuzzles+"]";
     }
     static boolean isGood(String name) {
         File file=new File(name);
@@ -115,6 +121,7 @@ class Cli {
     boolean printPdfs=false;
     String defaultFilename="sudokus_3.csv";
     String filename=null;
+    String title="";
     {
         if(isGood(defaultFilename)) filename=defaultFilename;
     }

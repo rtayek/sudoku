@@ -173,6 +173,9 @@ class Magic {
         ArrayList<Character> list=new ArrayList<>();
         loop:for(int i=offset;i<string.length();i++) {
             switch(c=string.charAt(i)) {
+                case '.': // new in files generated from qqwing
+                    list.add('0');
+                    break;
                 case ' ':
                     break;
                 case '\n':
@@ -206,6 +209,7 @@ class Magic {
             {0,0,3,0,0,9,8,0,5},{0,0,4,0,6,0,0,1,0},};
 }
 class Sudoku {
+    /*
     Sudoku(int[][] puzzle,int[][] solution) {
         this.puzzle=create(puzzle);
         this.solution=create(solution);
@@ -217,17 +221,39 @@ class Sudoku {
         int sum=n*(n+1)/2;
         if(!this.solution.isMagic(true)) System.out.println(this.solution.toString4()+"\n+is not magic!");
     }
-    Sudoku(String puzzle,String solution) {
+    */
+    Sudoku(String puzzle,String solution,String extra) {
         this.puzzle=create(get(puzzle,0));
+        int sum=0;
         this.solution=create(get(solution,0));
         if(!isConsistent()) {
             System.err.println("inconsistent: "+this);
             throw new RuntimeException("inconsistent: "+this);
         }
+        this.extra=extra;
+    }
+    static Sudoku fromStringx(String line) {
+        int offset=line.indexOf(',');
+        String puzzle=line.substring(0,offset);
+        String rest=line.substring(offset+1);
+        int offset2=rest.indexOf(',');
+        String solution=offset2==-1?rest:rest.substring(0,offset2);
+        String extra=offset2==-1?"none":rest.substring(offset2);
+        Sudoku sudoku=new Sudoku(puzzle,solution,extra);
+        return sudoku;
     }
     static Sudoku fromString(String line) {
-        int offset=line.indexOf(',');
-        Sudoku sudoku=new Sudoku(line.substring(0,offset),line.substring(offset+1));
+        String[] words=line.split(",");
+        if(words.length<=1) throw new RuntimeException("no comma in: "+line);
+        String puzzle=words[0];
+        String solution=words[1];
+        String extra="none";
+        if(words.length>2) {
+            extra="";
+            for(int i=2;i<words.length;i++)
+                extra+=words[i]+',';
+        }
+        Sudoku sudoku=new Sudoku(puzzle,solution,extra);
         return sudoku;
     }
     static List<Sudoku> readcsv(String name) throws IOException {
@@ -235,12 +261,24 @@ class Sudoku {
         ArrayList<Sudoku> list=new ArrayList<>();
         List<String> lines=Files.readAllLines(path);
         for(String line:lines)
-            if(line.length()>0&&!line.startsWith("puzzle,solution")) {
-                Sudoku sudoku=fromString(line);
-                list.add(sudoku);
+            try {
+                //System.out.println(line);
+                if(line.length()>0&&!line.startsWith("Puzzle")) {
+                    Sudoku sudoku=fromString(line);
+                    list.add(sudoku);
+                }
+            } catch(Exception e) {
+                System.out.println(line+" caught: "+e);
+                e.printStackTrace();
             }
-        System.out.println(list.size()+" sudokus");
         return list;
+    }
+    int hints() {
+        int sum=0;
+        for(int i=0;i<puzzle.magic.length;i++)
+            for(int j=0;j<puzzle.magic[0].length;j++)
+                if(puzzle.magic[i][j]!=0) sum++;
+        return sum;
     }
     boolean isConsistent() {
         for(int i=0;i<puzzle.magic.length;i++)
@@ -267,8 +305,10 @@ class Sudoku {
         //Magic magic=new Magic(EasyPuzzle4254328020);
         //System.out.println(magic);
         String name="sudokus_3.csv";
-        readcsv(name);
+        List<Sudoku> x=readcsv(name);
+        System.out.println("read "+x.size()+" sudokus from "+name);
     }
     final Magic puzzle,solution;
+    final String extra;
     static final String sudoku1Spaces="7 0 0 9 0 6 0 0 3 0 0 6 1 0 4 0 2 0 0 0 0 0 3 0 0 0 6 1 7 0 0 0 0 0 8 9 0 0 4 0 0 0 3 0 0 5 3 0 0 0 0 0 1 4 4 0 0 0 1 0 0 0 0 0 9 0 7 0 2 8 0 0 2 0 0 3 0 9 0 0 5,7 2 8 9 5 6 1 4 3 3 5 6 1 7 4 9 2 8 9 4 1 2 3 8 7 5 6 1 7 2 4 6 3 5 8 9 8 6 4 5 9 1 3 7 2 5 3 9 8 2 7 6 1 4 4 8 3 6 1 5 2 9 7 6 9 5 7 4 2 8 3 1 2 1 7 3 8 9 4 6 5";
 }

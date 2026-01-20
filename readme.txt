@@ -1,0 +1,1 @@
+java -cp bin/main com.qqwing.QQWingMain --count-solutions --difficulty expert --generate 1500 --solution --csv
